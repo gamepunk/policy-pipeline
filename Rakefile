@@ -28,7 +28,7 @@ namespace :db do
     load_app!
     Database.setup!
     Database.migrate!
-    puts "[DB] 完成"
+    puts "[Database] 完成"
   end
 
   desc "执行尚未应用的迁移"
@@ -36,8 +36,55 @@ namespace :db do
     load_app!
     Database.setup!
     Database.migrate!
-    puts "[DB] 迁移完成"
+    puts "[Database] 迁移完成"
   end
+
+  desc "生成 Rails 风格的 database/schema.rb(自动)"
+  task "schema:dump" do
+    load_app!
+    Database.setup!
+    Database.dump_schema!
+  end
+end
+
+desc "清空官方 API 本地缓存(crawler/tmp/cache.sqlite)"
+task "cache:clear" do
+  load_app!
+  Cache.clear!
+  puts "[Cache] 已清空"
+end
+
+desc "查看 API 缓存统计"
+task "cache:stats" do
+  load_app!
+  stats = Cache.stats
+  stats.each { |kind, count| puts "#{kind}: #{count} 条" }
+  puts "合计: #{stats.values.sum} 条"
+  puts "缓存文件: #{Cache.db_path}"
+end
+
+desc "交互式 Ruby 控制台(加载 app 环境,可直接操作模型与缓存)"
+task :console do
+  load_app!
+  Database.setup!
+  require "irb"
+  puts "可用对象: Article Category Topic Tax Industry Aging Tag Collection Attachment Meta Cache"
+  puts "content 库: #{Database.resolve_db_path}"
+  puts "cache 库: #{Cache.db_path}"
+  ARGV.clear
+  IRB.start
+end
+
+desc "打开 content 库的 SQLite 命令行"
+task :db do
+  load_app!
+  exec "sqlite3", Database.resolve_db_path
+end
+
+desc "打开 cache 库的 SQLite 命令行"
+task "cache:db" do
+  load_app!
+  exec "sqlite3", Cache.db_path
 end
 
 desc "全量抓取政策列表(可用 CONCURRENCY 指定并发数)"
@@ -83,6 +130,9 @@ end
 
 desc "常规日更新: 增量抓取列表 -> 抓取详情 -> 发布"
 task update: ["search:incremental", :fetch, :publish]
+
+desc "清空库后离线重建: 全量抓列表 -> 抓详情(全程优先走本地缓存)"
+task rebuild: [:search, :fetch]
 
 namespace :server do
   desc "安装 Worker 依赖"

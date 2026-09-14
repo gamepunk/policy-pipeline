@@ -16,6 +16,12 @@ sync:
   circuit_failure_threshold: 5
   circuit_cooldown_seconds: 60
 
+# 官方 API 响应本地缓存(单文件 SQLite:crawler/tmp/cache.sqlite,已 gitignore)
+cache:
+  enabled: true
+  ttl_seconds: 0 # 0 = 永不过期;正数 = 过期秒数;靠 rake cache:clear 或 CACHE_TTL 覆盖
+  offline: false # true = 只读缓存、不发网络请求;也可用环境变量 OFFLINE=1 临时开启
+
 d1:
   push_url: <%= ENV['D1_PUSH_URL'] %>
   push_token: <%= ENV['D1_PUSH_TOKEN'] %>

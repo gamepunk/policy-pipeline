@@ -11,10 +11,16 @@ $LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
 require "minitest/autorun"
 require "app"
 
-MIGRATION_FILE = File.expand_path("../../database/migrations/001_initial.sql", __dir__)
+# 测试不落盘缓存:避免把假响应写进 crawler/tmp/cache
+Cache.disable!
+
+# 按文件名顺序执行全部迁移,与 Database.migrate! 行为一致
+MIGRATIONS_DIR = File.expand_path("../../database/migrations", __dir__)
 
 ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-ActiveRecord::Base.connection.raw_connection.execute_batch(File.read(MIGRATION_FILE))
+Dir.glob(File.join(MIGRATIONS_DIR, "*.sql")).sort.each do |path|
+  ActiveRecord::Base.connection.raw_connection.execute_batch(File.read(path))
+end
 
 # 事务隔离:mixin 后每个测试在事务内运行,teardown 回滚
 module TransactionalTestCase

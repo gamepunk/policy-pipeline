@@ -57,21 +57,45 @@ class Client
     @circuit_key = Digest::SHA256.hexdigest(url.to_s)
   end
 
+  # 缓存粒度:get 按完整 query 区分,post 按 body 区分。
+  # 命中缓存直接 parse 返回,完全跳过网络请求与熔断逻辑。
   def get(params = {})
-    request_with_resilience do
-      uri = @uri.dup
-      uri.query = URI.encode_www_form(params)
-      parse(perform_with_retry { http_get(uri) })
+    uri = @uri.dup
+    uri.query = URI.encode_www_form(params)
+    fetch_or_request(cache_key("GET", uri.to_s), kind: "search") do
+      request_with_resilience do
+        parse(perform_with_retry { http_get(uri) })
+      end
     end
   end
 
   def post(body:)
-    request_with_resilience do
-      parse(perform_with_retry { http_post(@uri, body) })
+    fetch_or_request(cache_key("POST", @uri.to_s, body), kind: "fetch") do
+      request_with_resilience do
+        parse(perform_with_retry { http_post(@uri, body) })
+      end
     end
   end
 
   private
+
+  def fetch_or_request(key, kind:)
+    if (cached = Cache.fetch(key))
+      puts "[Client] Cache hit #{key[0, 12]}..." if ENV["DEBUG"]
+      return JSON.parse(cached)
+    end
+
+    # 离线模式:缓存未命中直接返回 nil,不发起网络请求
+    return nil if Cache.offline?
+
+    payload = yield
+    Cache.store(key, JSON.generate(payload), kind: kind) if payload
+    payload
+  end
+
+  def cache_key(method, url, body = nil)
+    Digest::SHA256.hexdigest([method, url, body].join("\u0000"))
+  end
 
   def http_get(uri)
     execute(Net::HTTP::Get.new(uri, @extra_headers), uri)

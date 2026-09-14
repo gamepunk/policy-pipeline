@@ -32,16 +32,21 @@ export async function version_handler(env: Env): Promise<Response> {
   return json({ content_version: await read_content_version(env) });
 }
 
-// 首版不做分页:增量同步场景下每次返回的数据量有限。
-// 若未来数据量增大,再按 content_version + id 游标分页。
+// 增量同步按游标分页:客户端用 since + after 翻页拉取,避免一次性返回全部数据
+// 导致 Worker CPU 超时。after 传上一批返回的 next_after,has_more=false 表示拉完。
 export async function sync_handler(env: Env, url: URL): Promise<Response> {
   const since = parseInt(url.searchParams.get("since") || "0", 10) || 0;
+  const after = parseInt(url.searchParams.get("after") || "0", 10) || 0;
+  const limit = Math.min(
+    parseInt(url.searchParams.get("limit") || "200", 10) || 200,
+    500,
+  );
   const latest = await read_content_version(env);
 
   const { results: rows } = await env.DB.prepare(
-    "SELECT * FROM articles WHERE content_version > ? ORDER BY content_version ASC, id ASC",
+    "SELECT * FROM articles WHERE content_version > ? AND id > ? ORDER BY id ASC LIMIT ?",
   )
-    .bind(since)
+    .bind(since, after, limit)
     .all<Record<string, unknown>>();
 
   const articles: Record<string, unknown>[] = [];
@@ -49,7 +54,11 @@ export async function sync_handler(env: Env, url: URL): Promise<Response> {
     articles.push(await serialize_article(env, row));
   }
 
-  return json({ content_version: latest, articles });
+  const next_after =
+    rows.length > 0 ? (rows[rows.length - 1].id as number) : after;
+  const has_more = rows.length === limit;
+
+  return json({ content_version: latest, articles, next_after, has_more });
 }
 
 export async function publish_handler(

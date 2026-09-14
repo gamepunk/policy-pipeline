@@ -19,6 +19,8 @@ end
 require_relative "support/loader"
 require_relative "support/lock"
 require_relative "support/mapper"
+require_relative "support/cache"
+require_relative "support/progress"
 
 # 清洗
 require_relative "clean/clock"

@@ -42,23 +42,25 @@ class Search
       if concurrency > 1
         puts "[Search] 启用并行抓取，线程数=#{concurrency}"
         parallel_request_pages(pages, concurrency) do |page, json|
-          puts "[Search] 处理第 #{page + 1}/#{total_pages} 页..."
           process_page(json, stop_on_existing: false)
           with_stats_lock { @stats[:pages] += 1 }
+          report_page_progress(total_pages)
         end
       else
         pages.each do |page|
-          puts "[Search] 抓取第 #{page + 1}/#{total_pages} 页..."
           json = request_page(page)
           process_page(json, stop_on_existing: false)
           with_stats_lock { @stats[:pages] += 1 }
+          report_page_progress(total_pages)
         end
       end
 
       # 最后处理第 0 页(最新)
       process_page(first_json, stop_on_existing: false)
       with_stats_lock { @stats[:pages] += 1 }
+      report_page_progress(total_pages)
 
+      Progress.done("[Search] 页面抓取完成 #{total_pages} 页")
       print_summary
       puts "[Search] 全量抓取完成"
     end
@@ -112,7 +114,7 @@ class Search
   end
 
   def request_page(page = 0)
-    client.get(
+    json = client.get(
       siteCode: "bm29000002",
       searchWord: "",
       type: "",
@@ -129,6 +131,7 @@ class Search
       cwrqEnd: "null",
       searchSiteName: "GSFFK"
     )
+    json || {}
   rescue => e
       error_message = Mapper.compact_message(e)
     puts "[Search] 请求失败 page=#{page}: #{error_message}"
@@ -190,6 +193,14 @@ class Search
 
   def content_changed?(article, item)
     article.content_hash != compute_hash(item)
+  end
+
+  # 单行刷新页进度,并实时显示失败页数
+  def report_page_progress(total_pages)
+    done = @stats[:pages]
+    pct = (done * 100.0 / total_pages).round(1)
+    failed = with_stats_lock { @stats[:failed_pages].size }
+    Progress.refresh("[Search] #{done}/#{total_pages} 页 (#{pct}%) 失败页:#{failed}")
   end
 
   def print_summary
@@ -296,7 +307,7 @@ class Search
     end
 
     puts "[Search] #{purpose.to_s.capitalize} 保存成功: #{article.code || article.origin_url}" \
-         "#{content_changed ? ' (内容有变化)' : ''}"
+         "#{content_changed ? ' (内容有变化)' : ''}" if ENV["DEBUG"]
     article
   end
 

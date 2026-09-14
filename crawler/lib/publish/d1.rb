@@ -25,15 +25,18 @@ module Publish
       end
 
       puts "[Publish] 开始推送 #{total} 条记录 (version=#{version}) 到 D1..."
+      pushed = 0
       articles.find_in_batches(batch_size: BATCH_SIZE) do |batch|
         payload = {
           content_version: version,
           articles: batch.map { |a| serialize(a) }
         }
         post_batch(payload)
-        puts "[Publish] 已推送 #{batch.size} 条 (batch)"
+        pushed += batch.size
+        pct = (pushed * 100.0 / total).round(1)
+        Progress.refresh("[Publish] 推送进度 #{pushed}/#{total} (#{pct}%)")
       end
-      puts "[Publish] 全部推送完成"
+      Progress.done("[Publish] 全部推送完成 #{total} 条")
     end
 
     private

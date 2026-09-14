@@ -6,6 +6,11 @@ crawler/config/secrets
 crawler/tmp/
 crawler/.bundle/
 
+# 数据库(本地 SQLite 库,不提交;结构用 migrations 管理)
+database/content.sqlite
+database/content.sqlite-shm
+database/content.sqlite-wal
+
 # Node / server
 server/node_modules/
 server/.wrangler/

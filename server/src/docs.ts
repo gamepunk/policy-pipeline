@@ -30,13 +30,25 @@ export const openapi_spec = {
     },
     "/api/content/sync": {
       get: {
-        summary: "增量同步(返回 content_version > since 的文章)",
+        summary: "增量同步(返回 content_version > since 的文章,游标分页)",
         parameters: [
           {
             name: "since",
             in: "query",
             description: "上次同步到的版本号,首次传 0",
             schema: { type: "integer", default: 0 },
+          },
+          {
+            name: "after",
+            in: "query",
+            description: "游标:上一批返回的 next_after,首次传 0",
+            schema: { type: "integer", default: 0 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            description: "每批条数,默认 200,最大 500",
+            schema: { type: "integer", default: 200 },
           },
         ],
         responses: {
@@ -49,6 +61,8 @@ export const openapi_spec = {
                   properties: {
                     content_version: { type: "integer" },
                     articles: { type: "array", items: { type: "object" } },
+                    next_after: { type: "integer" },
+                    has_more: { type: "boolean" },
                   },
                 },
               },

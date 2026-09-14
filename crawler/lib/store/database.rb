@@ -74,4 +74,20 @@ module Database
       "INSERT INTO schema_migrations (version, applied_at) VALUES (#{ActiveRecord::Base.connection.quote(version)}, datetime('now'))"
     )
   end
+
+  # 生成 Rails 风格的 database/schema.rb(自动生成,方便人工检查结构)。
+  # 该文件不参与建表,建表仍由 migrations/*.sql 负责。
+  def dump_schema!
+    require "active_record/schema_dumper"
+    path = schema_path
+    File.open(path, "w") do |io|
+      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, io)
+    end
+    puts "[Database] 已生成 #{path}"
+    path
+  end
+
+  def schema_path
+    File.expand_path("../../../database/schema.rb", __dir__)
+  end
 end
