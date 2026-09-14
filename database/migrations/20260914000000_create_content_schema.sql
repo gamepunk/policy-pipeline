@@ -1,5 +1,5 @@
--- database/migrations/001_initial.sql
--- 权威内容库 schema。这份 .sql 同时喂给本地 SQLite(cli/lib/database.rb 执行)
+-- database/migrations/20260914000000_create_content_schema.sql
+-- 权威内容库 schema。这份 .sql 同时喂给本地 SQLite(crawler/lib/store/database.rb 执行)
 -- 和 Cloudflare D1(server/wrangler.jsonc 的 migrations_dir 直接复用本目录),避免两边 schema 手写不一致。
 
 CREATE TABLE IF NOT EXISTS categories (
