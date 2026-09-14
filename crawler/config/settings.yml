@@ -1,0 +1,21 @@
+# crawler/config/settings.yml
+# 不含密钥的配置,可提交 Git。密钥放在同目录的 `secrets` 文件里(已 gitignore)。
+
+database:
+  path: ../../database/content.sqlite # 相对于 crawler/config 目录:config -> crawler -> project/database
+
+source:
+  search_url: https://www.chinatax.gov.cn/search5/search/s
+  fetch_url: https://www.chinatax.gov.cn/queryManuscriptAssociation
+
+sync:
+  search_concurrency: 4
+  fetch_concurrency: 4
+  request_timeout_seconds: 15
+  open_timeout_seconds: 5
+  circuit_failure_threshold: 5
+  circuit_cooldown_seconds: 60
+
+d1:
+  push_url: <%= ENV['D1_PUSH_URL'] %>
+  push_token: <%= ENV['D1_PUSH_TOKEN'] %>

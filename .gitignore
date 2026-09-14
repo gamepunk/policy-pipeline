@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# Ruby / crawler
+crawler/config/secrets
+crawler/tmp/
+crawler/.bundle/
+
+# Node / server
+server/node_modules/
+server/.wrangler/
+server/worker-configuration.d.ts

@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "taxman-content",
+  "main": "src/app.ts",
+  "compatibility_date": "2026-09-14",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "taxman-content",
+      "database_id": "25bff169-34ea-4c9e-9dbc-6277f6638eac",
+      // 复用项目根的 database/migrations/*.sql,本地 SQLite 与 D1 共用同一份 schema
+      "migrations_dir": "../database/migrations",
+    },
+  ],
+}

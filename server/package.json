@@ -1,0 +1,22 @@
+{
+  "name": "taxman-content-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "政策库内容同步 Worker:接收 CLI 推送写入 D1,对外提供版本与增量同步接口",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "d1:migrate:local": "wrangler d1 migrations apply taxman-content --local",
+    "d1:migrate:remote": "wrangler d1 migrations apply taxman-content --remote"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260914.1",
+    "typescript": "^7.0.0",
+    "wrangler": "^4.131.2"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "workerd": true
+  }
+}
