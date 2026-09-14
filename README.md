@@ -12,7 +12,7 @@ database/content.sqlite  (本地权威库,gitignore,不提交)
    iOS / macOS (SwiftData)
 ```
 
-`content_version` 是单调递增的整数,不用时间戳做增量同步依据,避免客户端/服务端时钟不一致的问题。
+`version` 是单调递增的整数,不用时间戳做增量同步依据,避免客户端/服务端时钟不一致的问题。
 
 ## 目录结构
 
@@ -137,8 +137,8 @@ rake server:d1:migrate:remote  # 应用 D1 远程迁移
 ## 增量与幂等
 
 - **列表增量**:`search:incremental` 按最后更新时间倒序拉取,遇到"已存在且内容 hash 未变"的记录即停止。
-- **内容变化检测**:每条记录存 `content_hash`,内容变了才把 `content_version` 归零(标记待发布),避免无变化数据被重复推送。
-- **发布幂等**:`publish` 按 `code + purpose` upsert 推给 Worker,重复推送无副作用,失败可直接重试整批。
+- **内容变化检测**:每条记录存 `content_hash`,内容变了才把 `version` 归零(标记待发布),避免无变化数据被重复推送。
+- **发布幂等**:`publish` 按 `code` 或 `origin_url` upsert 推给 Worker,重复推送无副作用,失败可直接重试整批。
 - **同步分页**:`/api/content/sync` 用 `since` + `after` 游标分页,避免全量返回导致 Worker CPU 超时。
 
 ## Worker API

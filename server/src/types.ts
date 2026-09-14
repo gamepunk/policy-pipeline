@@ -20,7 +20,6 @@ export interface ArticlePayload {
   content?: string | null;
   short_content?: string | null;
   publisher?: string | null;
-  purpose: number;
   doc_type?: string | null;
   doc_year?: number | null;
   doc_no?: number | null;
@@ -29,17 +28,14 @@ export interface ArticlePayload {
   published_at?: string | null;
   category?: string | null;
   aging?: string | null;
-  parent_article_code?: string | null;
-  child_article_code?: string | null;
+  policy_code?: string | null;
   topics?: string[];
-  taxes?: string[];
   industries?: string[];
-  tags?: string[];
   attachments?: AttachmentPayload[];
-  content_version?: number | null;
+  version?: number | null;
 }
 
 export interface PublishPayload {
-  content_version: number;
+  version: number;
   articles: ArticlePayload[];
 }

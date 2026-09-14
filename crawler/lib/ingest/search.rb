@@ -10,7 +10,7 @@ class Search
     @client = client
     preload_reference_cache
     @article_topic_ids = {}
-    @article_tax_ids = {}
+    @article_industry_ids = {}
     @article_attachment_urls = {}
     @stats_mutex = Mutex.new
     @stats = {
@@ -28,7 +28,7 @@ class Search
     lock_name = "search:all"
     locked = Lock.with_lock(lock_name, ttl: 30.minutes) do
       puts "[Search] 开始获取总页数 ..."
-      first_json = request_page
+      first_json = request_page(0) # 第 0 页 = 官方最新
 
       total = first_json.dig("searchResultAll", "total").to_i
       raise "[Search] API 未返回 total 字段" if total.zero?
@@ -36,29 +36,34 @@ class Search
       total_pages = (total / 10.0).ceil
       puts "[Search] 共 #{total} 条数据，#{total_pages} 页"
 
-      # 先抓后面的老页(1..total_pages-1),最后再写第 0 页(最新)。
-      # 这样最新文章最后入库、拿到最大的自增 id,保证 id 越大越新。
+      # 第一步:并发请求所有老页(page 1..total_pages-1),只收集结果不写库。
+      # 并发时结果按完成顺序返回,不能直接写库,否则 id 顺序会乱。
       pages = (1...total_pages).to_a
+      results = {}
       if concurrency > 1
         puts "[Search] 启用并行抓取，线程数=#{concurrency}"
         parallel_request_pages(pages, concurrency) do |page, json|
-          process_page(json, stop_on_existing: false)
+          results[page] = json
           with_stats_lock { @stats[:pages] += 1 }
           report_page_progress(total_pages)
         end
       else
         pages.each do |page|
-          json = request_page(page)
-          process_page(json, stop_on_existing: false)
+          results[page] = request_page(page)
           with_stats_lock { @stats[:pages] += 1 }
           report_page_progress(total_pages)
         end
       end
 
-      # 最后处理第 0 页(最新)
-      process_page(first_json, stop_on_existing: false)
-      with_stats_lock { @stats[:pages] += 1 }
-      report_page_progress(total_pages)
+      # 第二步:串行写库,从最老页(page=total_pages-1)写到最新页(page=0)。
+      # 页内也倒序(最旧一条先写、最新一条最后写)。
+      # 这样自增 id 越大越新,id DESC 即官方最新在前。
+      (pages.reverse + [0]).each do |page|
+        json = page.zero? ? first_json : results[page]
+        next if json.nil?
+
+        process_page(json, stop_on_existing: false, reverse: true)
+      end
 
       Progress.done("[Search] 页面抓取完成 #{total_pages} 页")
       print_summary
@@ -161,28 +166,30 @@ class Search
   end
 
   # 处理每一页，stop_on_existing=true 时遇到已存在且内容无变化的记录后终止并返回 true
-  def process_page(json, stop_on_existing:)
+  # reverse=true 时倒序遍历(全量抓取用,保证 id 越大越新)
+  def process_page(json, stop_on_existing:, reverse: false)
     list = extract_list(json)
+    list = list.reverse if reverse
     indexed = build_existing_index(list)
 
     list.each do |item|
       with_stats_lock { @stats[:records_seen] += 1 }
       purpose = purpose_from_item(item)
       key = article_key(item)
-      existing_record = indexed.dig(purpose, :records, key)
-      existing = indexed.dig(purpose, :keys)&.include?(key)
+      existing_record = indexed[:records][key]
+      existing = indexed[:keys].include?(key)
 
       if stop_on_existing && existing && !content_changed?(existing_record, item)
         with_stats_lock { @stats[:skipped_existing] += 1 }
         return true
       end
 
-      article = existing_record || initialize_article(item, purpose)
+      article = existing_record || initialize_article(item)
       upsert_article(item, purpose, article)
       with_stats_lock { @stats[:records_saved] += 1 }
 
-      indexed[purpose][:keys] << key
-      indexed[purpose][:records][key] = article
+      indexed[:keys] << key
+      indexed[:records][key] = article
     rescue => e
       with_stats_lock { @stats[:errors] += 1 }
       puts "[Search] 处理失败 item_id=#{item['id']}: #{Mapper.compact_message(e)}"
@@ -220,12 +227,8 @@ class Search
     item["label"] == INTERPRETATION_LABEL ? :interpretation : :policy
   end
 
-  def purpose_value(purpose)
-    Article.purposes.fetch(purpose.to_s)
-  end
-
   def normalize_url(url)
-    url.to_s.strip.gsub(/^http:/, "https:")
+    Sanitizer.normalize_url(url)
   end
 
   def extract_code(item)
@@ -238,71 +241,62 @@ class Search
   end
 
   def build_existing_index(list)
-    grouped = list.group_by { |item| purpose_from_item(item) }
-    result = {}
+    codes = list.map { |item| extract_code(item) }.reject(&:blank?).uniq
+    urls = list.map { |item| normalize_url(item["url"]) }.reject(&:blank?).uniq
+    scope = Article.all
+    records =
+      if codes.any? && urls.any?
+        scope.where(code: codes).or(scope.where(origin_url: urls)).to_a
+      elsif codes.any?
+        scope.where(code: codes).to_a
+      elsif urls.any?
+        scope.where(origin_url: urls).to_a
+      else
+        []
+      end
+    keys = Set.new
+    record_map = {}
 
-    grouped.each do |purpose, items|
-      codes = items.map { |item| extract_code(item) }.reject(&:blank?).uniq
-      urls = items.map { |item| normalize_url(item["url"]) }.reject(&:blank?).uniq
-      pv = purpose_value(purpose)
-      scope = Article.where(purpose: pv)
-      records =
-        if codes.any? && urls.any?
-          scope.where(code: codes).or(scope.where(origin_url: urls)).to_a
-        elsif codes.any?
-          scope.where(code: codes).to_a
-        elsif urls.any?
-          scope.where(origin_url: urls).to_a
-        else
-          []
-        end
-      keys = Set.new
-      record_map = {}
-
-      records.each do |record|
-        if record.code.present?
-          code_key = "code:#{record.code}"
-          keys << code_key
-          record_map[code_key] = record
-        end
-
-        next unless record.origin_url.present?
-
-        url_key = "url:#{normalize_url(record.origin_url)}"
-        keys << url_key
-        record_map[url_key] = record
+    records.each do |record|
+      if record.code.present?
+        code_key = "code:#{record.code}"
+        keys << code_key
+        record_map[code_key] = record
       end
 
-      result[purpose] = { keys: keys, records: record_map }
+      next unless record.origin_url.present?
+
+      url_key = "url:#{normalize_url(record.origin_url)}"
+      keys << url_key
+      record_map[url_key] = record
     end
 
-    result
+    { keys: keys, records: record_map }
   end
 
-  def initialize_article(item, purpose)
+  def initialize_article(item)
     code = extract_code(item)
     origin_url = normalize_url(item["url"])
-    pv = purpose_value(purpose)
-    Article.new(code: code, origin_url: origin_url, purpose: pv)
+    Article.new(code: code, origin_url: origin_url)
   end
 
   def upsert_article(item, purpose, article)
-    article.assign_attributes(common_attributes(item, purpose))
+    article.assign_attributes(common_attributes(item))
     article.assign_attributes(policy_attributes(item)) if purpose == :policy
     article.aging_id ||= @default_aging_id if purpose == :interpretation
 
     new_hash = compute_hash(item)
     content_changed = article.content_hash != new_hash
     article.content_hash = new_hash
-    # 内容有变化(或是新记录)就把 content_version 归零,
+    # 内容有变化(或是新记录)就把 version 归零,
     # 下次 publish 命令会把它当作"待发布"重新推送。
-    article.content_version = 0 if content_changed
+    article.version = 0 if content_changed
 
     article.save!
 
     if purpose == :policy
       sync_topics(article, item)
-      sync_taxes(article, item)
+      sync_industries(article, item)
       sync_attachments(article, item)
     end
 
@@ -315,15 +309,14 @@ class Search
     Digest::SHA256.hexdigest("#{item['title']}|#{item['content']}|#{item['shortContent']}")
   end
 
-  def common_attributes(item, purpose)
+  def common_attributes(item)
     attrs = {
       title: Sanitizer.clean(item["title"]),
       content: Sanitizer.clean(item["content"]),
       short_content: Sanitizer.clean(item["shortContent"]),
-      publisher: item["pubName"],
+      publisher: Sanitizer.clean(item["pubName"]),
       origin_url: normalize_url(item["url"]),
       code: extract_code(item),
-      purpose: purpose_value(purpose),
       category_id: lookup_id(@category_ids_by_title, Category, item["label"])
     }
 
@@ -335,10 +328,10 @@ class Search
   def policy_attributes(item)
     attrs = { notice: Sanitizer.clean(item["xxgk_description"]) }
 
-    doc_type = item.dig("govDoc", "docType")
+    doc_type = Sanitizer.clean(item.dig("govDoc", "docType"))
     doc_year = item.dig("govDoc", "docYear")
     doc_no = item.dig("govDoc", "docNo")
-    doc_number = item.dig("govDoc", "docNum")
+    doc_number = Sanitizer.clean(item.dig("govDoc", "docNum"))
 
     attrs[:doc_type] = doc_type if doc_type.present?
     attrs[:doc_year] = doc_year if doc_year.present?
@@ -358,9 +351,11 @@ class Search
     []
   end
 
+  # 主题(根)+ 税种/费种(叶子)都挂到 topics,主题与叶子的层级由 topics.parent_id 表达
   def sync_topics(article, item)
     ids = cached_topic_ids(article)
-    parse_json_array(item["xxgk_taxPolicy"]).each do |topic_name|
+    names = parse_json_array(item["xxgk_taxPolicy"]) + parse_json_array(item["xxgk_son_taxPolicy"])
+    names.uniq.each do |topic_name|
       next if topic_name.blank?
 
       topic = lookup_record(@topic_ids_by_title, @topics_by_id, Topic, topic_name.to_s.strip)
@@ -394,20 +389,16 @@ class Search
     end
   end
 
-  def sync_taxes(article, item)
-    parent_policy_type = parse_json_array(item["xxgk_taxPolicy"])
-    child_tax_list = parse_json_array(item["xxgk_son_taxPolicy"])
-    return unless parent_policy_type.include?("税收政策")
+  def sync_industries(article, item)
+    ids = cached_industry_ids(article)
+    parse_json_array(item["industries"]).each do |industry_name|
+      next if industry_name.blank?
 
-    ids = cached_tax_ids(article)
-    child_tax_list.uniq.each do |tax_name|
-      next if tax_name.blank?
+      industry = lookup_record(@industry_ids_by_title, @industries_by_id, Industry, industry_name.to_s.strip)
+      next unless industry
+      next unless ids.add?(industry.id)
 
-      tax = lookup_record(@tax_ids_by_title, @taxes_by_id, Tax, tax_name.to_s.strip)
-      next unless tax
-      next unless ids.add?(tax.id)
-
-      article.taxes << tax
+      article.industries << industry
     end
   end
 
@@ -415,9 +406,9 @@ class Search
     @category_ids_by_title = Category.pluck(:title, :id).to_h
     @aging_ids_by_title = Aging.pluck(:title, :id).to_h
     @topic_ids_by_title = Topic.pluck(:title, :id).to_h
-    @tax_ids_by_title = Tax.pluck(:title, :id).to_h
+    @industry_ids_by_title = Industry.pluck(:title, :id).to_h
     @topics_by_id = Topic.where(id: @topic_ids_by_title.values).index_by(&:id)
-    @taxes_by_id = Tax.where(id: @tax_ids_by_title.values).index_by(&:id)
+    @industries_by_id = Industry.where(id: @industry_ids_by_title.values).index_by(&:id)
     @default_aging_id = @aging_ids_by_title["全文有效"]
   end
 
@@ -439,8 +430,8 @@ class Search
     @article_topic_ids[article.id] ||= article.topic_ids.to_set
   end
 
-  def cached_tax_ids(article)
-    @article_tax_ids[article.id] ||= article.tax_ids.to_set
+  def cached_industry_ids(article)
+    @article_industry_ids[article.id] ||= article.industry_ids.to_set
   end
 
   def cached_attachment_urls(article)

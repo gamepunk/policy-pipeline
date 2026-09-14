@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# key-value 表,目前只存 content_version。
+# key-value 表,目前只存 version。
 class Meta < ActiveRecord::Base
   self.primary_key = "key"
 
@@ -15,7 +15,7 @@ class Meta < ActiveRecord::Base
     value
   end
 
-  def self.content_version
-    (get("content_version") || "0").to_i
+  def self.version
+    (get("version") || "0").to_i
   end
 end

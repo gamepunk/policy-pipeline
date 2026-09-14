@@ -2,7 +2,7 @@
 // 对应 crawler 的 commands 层职责。
 
 import type { Env, PublishPayload } from "./types";
-import { read_content_version, upsert_article } from "./database";
+import { read_version, upsert_article } from "./database";
 import { serialize_article } from "./serializer";
 
 export function json(data: unknown, status = 200): Response {
@@ -29,7 +29,7 @@ function authorized(request: Request, env: Env): boolean {
 }
 
 export async function version_handler(env: Env): Promise<Response> {
-  return json({ content_version: await read_content_version(env) });
+  return json({ version: await read_version(env) });
 }
 
 // 增量同步按游标分页:客户端用 since + after 翻页拉取,避免一次性返回全部数据
@@ -41,10 +41,10 @@ export async function sync_handler(env: Env, url: URL): Promise<Response> {
     parseInt(url.searchParams.get("limit") || "200", 10) || 200,
     500,
   );
-  const latest = await read_content_version(env);
+  const latest = await read_version(env);
 
   const { results: rows } = await env.DB.prepare(
-    "SELECT * FROM articles WHERE content_version > ? AND id > ? ORDER BY id ASC LIMIT ?",
+    "SELECT * FROM articles WHERE version > ? AND id > ? ORDER BY id ASC LIMIT ?",
   )
     .bind(since, after, limit)
     .all<Record<string, unknown>>();
@@ -58,7 +58,7 @@ export async function sync_handler(env: Env, url: URL): Promise<Response> {
     rows.length > 0 ? (rows[rows.length - 1].id as number) : after;
   const has_more = rows.length === limit;
 
-  return json({ content_version: latest, articles, next_after, has_more });
+  return json({ version: latest, articles, next_after, has_more });
 }
 
 export async function publish_handler(
@@ -76,7 +76,7 @@ export async function publish_handler(
     return json({ error: "invalid_json" }, 400);
   }
 
-  const version = payload?.content_version;
+  const version = payload?.version;
   if (!Number.isInteger(version) || !Array.isArray(payload.articles)) {
     return json({ error: "invalid_payload" }, 400);
   }
@@ -86,7 +86,7 @@ export async function publish_handler(
   }
 
   await env.DB.prepare(
-    "INSERT INTO meta (key, value) VALUES ('content_version', ?) " +
+    "INSERT INTO meta (key, value) VALUES ('version', ?) " +
       "ON CONFLICT(key) DO UPDATE SET value = ?",
   )
     .bind(String(version), String(version))
@@ -94,7 +94,7 @@ export async function publish_handler(
 
   return json({
     ok: true,
-    content_version: version,
+    version: version,
     count: payload.articles.length,
   });
 }

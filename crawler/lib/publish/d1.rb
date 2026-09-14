@@ -3,8 +3,8 @@
 require "json"
 
 module Publish
-  # 把本次 bump 到某个 content_version 的记录,批量 POST 给 Worker 的 /api/publish。
-  # 鉴权用 Bearer token(D1_PUSH_TOKEN),推送按 code+purpose upsert,天然幂等——
+  # 把本次 bump 到某个 version 的记录,批量 POST 给 Worker 的 /api/publish。
+  # 鉴权用 Bearer token(D1_PUSH_TOKEN),推送按 code 或 origin_url upsert,天然幂等——
   # 同一批数据重复推送不会产生副作用,网络失败后可以直接重试整批。
   class D1
     BATCH_SIZE = 50
@@ -16,8 +16,8 @@ module Publish
     end
 
     def push(version:)
-      articles = Article.where(content_version: version).includes(:category, :aging, :topics, :taxes,
-                                                                    :industries, :tags, :attachments)
+      articles = Article.where(version: version).includes(:category, :aging, :topics,
+                                                                    :industries, :attachments)
       total = articles.count
       if total.zero?
         puts "[Publish] version=#{version} 没有记录需要推送"
@@ -28,7 +28,7 @@ module Publish
       pushed = 0
       articles.find_in_batches(batch_size: BATCH_SIZE) do |batch|
         payload = {
-          content_version: version,
+          version: version,
           articles: batch.map { |a| serialize(a) }
         }
         post_batch(payload)
@@ -65,7 +65,6 @@ module Publish
         content: article.content,
         short_content: article.short_content,
         publisher: article.publisher,
-        purpose: article.purpose_before_type_cast,
         doc_type: article.doc_type,
         doc_year: article.doc_year,
         doc_no: article.doc_no,
@@ -74,14 +73,11 @@ module Publish
         published_at: article.published_at&.iso8601,
         category: article.category&.title,
         aging: article.aging&.title,
-        parent_article_code: article.parent_article&.code,
-        child_article_code: article.child_article&.code,
+        policy_code: article.policy&.code,
         topics: article.topics.map(&:title),
-        taxes: article.taxes.map(&:title),
         industries: article.industries.map(&:title),
-        tags: article.tags.map(&:title),
         attachments: article.attachments.map { |a| { title: a.title, source_url: a.source_url, file_type: a.file_type } },
-        content_version: article.content_version
+        version: article.version
       }
     end
   end

@@ -1,0 +1,54 @@
+<div class="page-head">
+  <h1>文章列表</h1>
+  <div class="sub">共 <%= @total %> 篇 · 第 <%= @page %> / <%= @pages %> 页</div>
+</div>
+
+<div class="card">
+  <form method="get" action="/" class="toolbar">
+    <div class="searchbox">
+      <span class="icon">🔍</span>
+      <input type="text" name="q" value="<%= h(@q) %>" placeholder="搜索标题 / code / 文号..." />
+    </div>
+    <button class="btn primary" type="submit">搜索</button>
+    <% unless @q.empty? %>
+      <a class="btn" href="/">清除</a>
+    <% end %>
+  </form>
+
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Code</th><th>标题</th><th>类型</th><th>版本</th><th>更新时间</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @articles.each do |a| %>
+      <tr>
+        <td class="code"><%= a.id %></td>
+        <td class="code"><%= h(a.code) %></td>
+        <td class="title"><a href="/articles/<%= a.id %>"><%= h(a.title.presence || "(无标题)") %></a></td>
+        <td>
+          <% if a.interpretation? %>
+            <span class="badge interpretation">解读</span>
+          <% else %>
+            <span class="badge policy">政策</span>
+          <% end %>
+        </td>
+        <td><span class="badge version">v<%= a.version %></span></td>
+        <td class="time"><%= h(a.updated_at) %></td>
+        <td><a class="btn" href="/articles/<%= a.id %>/edit">编辑</a></td>
+      </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <% if @articles.empty? %>
+    <div class="empty">没有匹配的文章</div>
+  <% end %>
+
+  <div class="pager">
+    <div class="info">第 <%= @page %> / <%= @pages %> 页</div>
+    <div class="controls">
+      <% if @page > 1 %><a class="btn" href="<%= paging_url(@page - 1) %>">← 上一页</a><% end %>
+      <% if @page < @pages %><a class="btn" href="<%= paging_url(@page + 1) %>">下一页 →</a><% end %>
+    </div>
+  </div>
+</div>

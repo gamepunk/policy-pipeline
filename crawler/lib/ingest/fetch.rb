@@ -14,12 +14,12 @@ class Fetch
     }
   end
 
-  # 批量执行（按 purpose 过滤）
+  # 批量执行（按 purpose 过滤,内部用 category 判断解读）
   def fetch_all(purpose: nil, concurrency: default_concurrency)
     lock_name = "fetch:all:#{purpose || 'all'}"
     locked = Lock.with_lock(lock_name, ttl: 30.minutes) do
       scope = Article.where.not(code: [nil, ""])
-      scope = scope.where(purpose: Article.purposes.fetch(purpose.to_s)) if purpose
+      scope = filter_by_purpose(scope, purpose)
       codes = scope.pluck(:code)
 
       if codes.empty?
@@ -64,9 +64,50 @@ class Fetch
     fetch_all(purpose: :interpretation)
   end
 
+  # 反向补抓:从政策详情的 policyInterpretation 收集解读 id,补抓未入库的解读
+  # (图片政策解读、视频政策解读等不在 search 列表里的解读)。
+  def fetch_missing_interpretations
+    puts "[Fetch] 开始反向补抓解读..."
+    referenced = collect_referenced_interpretation_ids
+    existing = Article.where.not(code: [nil, ""]).pluck(:code).to_set
+    # 未入库的解读 + 已入库但 category 为空的解读(之前 level 4 分类缺失导致)
+    category_missing = Article.where(category_id: nil).pluck(:code)
+    missing = ((referenced - existing) + category_missing).uniq.sort
+
+    puts "[Fetch] 政策引用的解读 #{referenced.size} 个,已入库 #{referenced.size - (missing & referenced.to_a).size} 个,待处理 #{missing.size} 个"
+
+    if missing.empty?
+      puts "[Fetch] 没有需要补抓的解读"
+      print_summary
+      return
+    end
+
+    missing.each_with_index do |code, index|
+      json = request(code)
+      if json.nil?
+        with_stats_lock { @stats[:skipped] += 1 }
+      else
+        begin
+          upsert_missing_interpretation(json)
+          with_stats_lock { @stats[:processed] += 1 }
+        rescue => e
+          with_stats_lock do
+            @stats[:process_failures] += 1
+            @stats[:failed_codes] << code
+          end
+          puts "[Fetch] 解读处理失败 code=#{code}: #{Mapper.compact_message(e)}"
+        end
+      end
+      report_progress(index + 1, missing.size)
+    end
+
+    Progress.done("[Fetch] 反向补抓完成 #{missing.size} 个解读")
+    print_summary
+  end
+
   def fetch_article(code, purpose: nil)
-    article = find_article(code, purpose: purpose)
-    return puts("[Fetch] 未找到 Article(code=#{code}, purpose=#{purpose || 'all'})") unless article
+    article = find_article(code)
+    return puts("[Fetch] 未找到 Article(code=#{code})") unless article
 
     json = request(code)
     return puts("[Fetch] 获取 JSON 失败 (article #{code})") unless json
@@ -75,13 +116,108 @@ class Fetch
     process_article(article, json)
 
     if article.content.present? && article.content != before_content
-      puts "[Fetch] #{article.purpose}(#{article.code}) 完成,正文已更新"
+      puts "[Fetch] #{article.category&.title}(#{article.code}) 完成,正文已更新"
     else
-      puts "[Fetch] #{article.purpose}(#{article.code}) 完成,内容无变化"
+      puts "[Fetch] #{article.category&.title}(#{article.code}) 完成,内容无变化"
     end
   end
 
   private
+
+  # 遍历所有政策文章的详情,收集 policyInterpretation 引用的全部解读 id
+  def collect_referenced_interpretation_ids
+    ids = Set.new
+    policy_codes = Article.policy.where.not(code: [nil, ""]).pluck(:code)
+    total = policy_codes.size
+    puts "[Fetch] 遍历 #{total} 篇政策详情,收集解读引用..."
+
+    policy_codes.each_with_index do |code, index|
+      json = request(code)
+      if json
+        data = extract_data(json)
+        if data
+          container = data.find { |row| row["policyInterpretation"].present? }
+          if container
+            container["policyInterpretation"].each do |item|
+              ids << item["id"].to_s if item["id"].present?
+            end
+          end
+        end
+      end
+
+      done = index + 1
+      Progress.refresh("[Fetch] 收集引用 #{done}/#{total} (#{(done * 100.0 / total).round(1)}%)")
+    end
+
+    Progress.done("[Fetch] 引用收集完成:遍历 #{total} 篇,发现 #{ids.size} 个解读引用")
+    ids
+  end
+
+  # 解析一条解读详情,创建/更新 Article,并按 channel 设置分类、按 policyDocument 关联政策
+  # content 若有值则写入(图片/视频解读为 img/video 标签)
+  def upsert_missing_interpretation(json)
+    data = extract_data(json)
+    return unless data
+
+    item = data.find { |row| row["contentHtml"].present? } || data.first
+    return unless item
+
+    code = item["mId"].to_s
+    return if code.blank?
+
+    article = Article.find_or_initialize_by(code: code)
+    article.origin_url = normalize_url(item["url"])
+    article.title = Sanitizer.clean(item["title"])
+    article.published_at = Clock.parse(item["publishedTimeStr"]) if item["publishedTimeStr"].present?
+    article.category = find_category_by_channel(item["channel"])
+    article.content = Sanitizer.clean_html(item["contentHtml"]) if item["contentHtml"].present?
+    article.save!
+
+    link_policy_from_interpretation(article, data)
+
+    article
+  end
+
+  # 从解读详情的 policyDocument 找到政策,建立 policy 关联
+  def link_policy_from_interpretation(interpretation, data)
+    container = data.find { |row| row["policyDocument"].present? }
+    return unless container
+
+    policy_doc = container["policyDocument"]&.first
+    return unless policy_doc
+
+    policy = Article.find_by(code: policy_doc["id"].to_s)
+    return unless policy
+    return if interpretation.policy == policy
+
+    interpretation.update!(policy: policy)
+    puts "[Fetch] Interpretation(#{interpretation.code}) 关联政策 #{policy.code}" if ENV["DEBUG"]
+  end
+
+  # 取 channel 最后一层(最细分类)的 displayName 作为 category
+  def find_category_by_channel(channel)
+    return nil unless channel.is_a?(Array) && channel.any?
+
+    leaf = channel.last
+    title = leaf["displayName"].presence || leaf["channelName"]
+    return nil if title.blank?
+
+    Category.find_by(title: title)
+  end
+
+  def normalize_url(url)
+    Sanitizer.normalize_url(url)
+  end
+
+  def filter_by_purpose(scope, purpose)
+    return scope unless purpose
+
+    case purpose.to_sym
+    when :policy then scope.where.not(category_id: Category.interpretation_ids)
+    when :interpretation then scope.where(category_id: Category.interpretation_ids)
+    else scope
+    end
+  end
 
   def config
     Loader.current
@@ -102,10 +238,8 @@ class Fetch
     ))
   end
 
-  def find_article(code, purpose:)
-    scope = Article.where(code: code)
-    scope = scope.where(purpose: Article.purposes.fetch(purpose.to_s)) if purpose
-    scope.first
+  def find_article(code)
+    Article.where(code: code).first
   end
 
   def request(code)
@@ -214,12 +348,12 @@ class Fetch
       return
     end
 
-    cleaned = Sanitizer.clean(item["contentHtml"])
+    cleaned = Sanitizer.clean_html(item["contentHtml"])
     if cleaned != article.content
       article.update!(content: cleaned)
       article.mark_dirty! # 内容变了,下次 publish 要重新推送
       with_stats_lock { @stats[:updated] += 1 }
-      puts "[Fetch] #{article.purpose}(#{article.code}) 内容已更新" if ENV["DEBUG"]
+      puts "[Fetch] #{article.category&.title}(#{article.code}) 内容已更新" if ENV["DEBUG"]
     end
   end
 
@@ -244,7 +378,8 @@ class Fetch
     end
   end
 
-  # 关联 Interpretation（一对一）
+  # 关联 Interpretation:每个解读都要挂回它的政策(policy),
+  # 一个政策可能有多篇解读,所以遍历全部。
   def link_interpretation(policy, data)
     container = data.find { |item| item["policyInterpretation"].present? }
     unless container
@@ -252,21 +387,20 @@ class Fetch
       return
     end
 
-    interpretation_data = container["policyInterpretation"]&.first
-    unless interpretation_data
-      puts "[Fetch] Policy(#{policy.code}) 无 Interpretation" if ENV["DEBUG"]
-      return
-    end
+    interpretations = container["policyInterpretation"]
+    return if interpretations.blank?
 
-    interpretation = Article.find_by(code: interpretation_data["id"], purpose: Article.purposes["interpretation"])
-    unless interpretation
-      puts "[Fetch] Interpretation 未找到 id=#{interpretation_data['id']}" if ENV["DEBUG"]
-      return
-    end
-    return if policy.child_article == interpretation
+    interpretations.each do |interpretation_data|
+      interpretation = Article.find_by(code: interpretation_data["id"].to_s)
+      unless interpretation
+        puts "[Fetch] Interpretation 未找到 id=#{interpretation_data['id']}" if ENV["DEBUG"]
+        next
+      end
+      next if interpretation.policy == policy
 
-    policy.update!(child_article: interpretation)
-    puts "[Fetch] Policy(#{policy.code}) ⇆ Interpretation(#{interpretation.code}) 已建立关联" if ENV["DEBUG"]
+      interpretation.update!(policy: policy)
+      puts "[Fetch] Policy(#{policy.code}) ⇆ Interpretation(#{interpretation.code}) 已建立关联" if ENV["DEBUG"]
+    end
   end
 
   def with_stats_lock(&block)

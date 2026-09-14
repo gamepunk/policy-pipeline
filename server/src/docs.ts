@@ -20,7 +20,7 @@ export const openapi_spec = {
               "application/json": {
                 schema: {
                   type: "object",
-                  properties: { content_version: { type: "integer" } },
+                  properties: { version: { type: "integer" } },
                 },
               },
             },
@@ -30,7 +30,7 @@ export const openapi_spec = {
     },
     "/api/content/sync": {
       get: {
-        summary: "增量同步(返回 content_version > since 的文章,游标分页)",
+        summary: "增量同步(返回 version > since 的文章,游标分页)",
         parameters: [
           {
             name: "since",
@@ -59,7 +59,7 @@ export const openapi_spec = {
                 schema: {
                   type: "object",
                   properties: {
-                    content_version: { type: "integer" },
+                    version: { type: "integer" },
                     articles: { type: "array", items: { type: "object" } },
                     next_after: { type: "integer" },
                     has_more: { type: "boolean" },
@@ -68,6 +68,106 @@ export const openapi_spec = {
               },
             },
           },
+        },
+      },
+    },
+    "/api/content/articles": {
+      get: {
+        summary: "文章列表(分页,返回摘要字段,不含正文)",
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            description: "页码,默认 1",
+            schema: { type: "integer", default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            description: "每页条数,默认 20,最大 100",
+            schema: { type: "integer", default: 20 },
+          },
+        ],
+        responses: {
+          200: {
+            description: "OK",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    total: { type: "integer" },
+                    page: { type: "integer" },
+                    limit: { type: "integer" },
+                    pages: { type: "integer" },
+                    articles: { type: "array", items: { type: "object" } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/api/content/articles/{code}": {
+      get: {
+        summary: "单篇文章详情(按 code,含全部关联)",
+        parameters: [
+          {
+            name: "code",
+            in: "path",
+            required: true,
+            description: "文章 code",
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "OK" },
+          404: { description: "未找到" },
+        },
+      },
+    },
+    "/api/content/search": {
+      get: {
+        summary: "搜索(标题/文号/摘要模糊匹配)",
+        parameters: [
+          {
+            name: "q",
+            in: "query",
+            required: true,
+            description: "搜索关键词",
+            schema: { type: "string" },
+          },
+          {
+            name: "page",
+            in: "query",
+            schema: { type: "integer", default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", default: 20 },
+          },
+        ],
+        responses: {
+          200: { description: "OK" },
+          400: { description: "缺少 q 参数" },
+        },
+      },
+    },
+    "/api/content/dictionaries": {
+      get: {
+        summary: "全部字典(分类/时效/主题/税种/行业/标签/专题)",
+        responses: {
+          200: { description: "OK" },
+        },
+      },
+    },
+    "/api/content/stats": {
+      get: {
+        summary: "统计概览(总数/政策/解读/版本号)",
+        responses: {
+          200: { description: "OK" },
         },
       },
     },
@@ -81,9 +181,9 @@ export const openapi_spec = {
             "application/json": {
               schema: {
                 type: "object",
-                required: ["content_version", "articles"],
+                required: ["version", "articles"],
                 properties: {
-                  content_version: { type: "integer" },
+                  version: { type: "integer" },
                   articles: { type: "array", items: { type: "object" } },
                 },
               },

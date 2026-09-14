@@ -1,0 +1,102 @@
+<div class="page-head">
+  <h1><%= h(@article.title.presence || "(无标题)") %></h1>
+  <div class="sub"><a href="/">← 返回列表</a></div>
+</div>
+
+<div class="card">
+  <table class="kv">
+    <tr><th>id</th><td>#<%= @article.id %></td></tr>
+    <tr><th>code</th><td><code><%= h(@article.code) %></code></td></tr>
+    <tr><th>origin_url</th><td><a href="<%= h(@article.origin_url) %>" target="_blank" rel="noopener"><%= h(@article.origin_url) %></a></td></tr>
+    <tr><th>publisher</th><td><%= h(@article.publisher) %></td></tr>
+    <tr><th>doc_type</th><td><%= h(@article.doc_type) %></td></tr>
+    <tr><th>doc_number</th><td><%= h(@article.doc_number) %></td></tr>
+    <tr><th>doc_year</th><td><%= @article.doc_year %></td></tr>
+    <tr><th>doc_no</th><td><%= @article.doc_no %></td></tr>
+    <tr><th>published_at</th><td><%= @article.published_at %></td></tr>
+    <tr><th>notice</th><td><%= h(@article.notice) %></td></tr>
+    <tr><th>category</th><td><%= h(@article.category&.title) %></td></tr>
+    <tr><th>aging</th><td><%= h(@article.aging&.title) %></td></tr>
+    <tr><th>topics</th><td><%= h(@article.topics.map(&:title).join("、")) %></td></tr>
+    <tr><th>industries</th><td><%= h(@article.industries.map(&:title).join("、")) %></td></tr>
+    <tr>
+      <th>related_articles</th>
+      <td>
+        <% if @article.related_articles.any? %>
+          <% @article.related_articles.each do |ra| %>
+            <div><a href="/articles/<%= ra.id %>"><%= h(ra.title) %></a></div>
+          <% end %>
+        <% else %>
+          —
+        <% end %>
+      </td>
+    </tr>
+    <tr>
+      <th>policy</th>
+      <td>
+        <% if @article.policy %>
+          <a href="/articles/<%= @article.policy.id %>"><%= h(@article.policy.title) %></a>
+        <% else %>—<% end %>
+      </td>
+    </tr>
+    <tr>
+      <th>interpretations</th>
+      <td>
+        <% if @article.interpretations.any? %>
+          <% @article.interpretations.each do |ia| %>
+            <div><a href="/articles/<%= ia.id %>"><%= h(ia.title) %></a></div>
+          <% end %>
+        <% else %>—<% end %>
+      </td>
+    </tr>
+    <tr><th>content_hash</th><td><code><%= @article.content_hash %></code></td></tr>
+    <tr><th>created_at</th><td><%= @article.created_at %></td></tr>
+    <tr><th>updated_at</th><td><%= @article.updated_at %></td></tr>
+    <tr>
+      <th>attachments</th>
+      <td>
+        <% if @article.attachments.any? %>
+          <% @article.attachments.each do |att| %>
+            <div class="att-item">
+              <strong><%= h(att.title) %></strong>
+              <span class="muted">(<%= h(att.file_type) %>)</span>
+              <a href="<%= h(att.source_url) %>" target="_blank" rel="noopener">打开 ↗</a>
+            </div>
+          <% end %>
+        <% else %>
+          —
+        <% end %>
+      </td>
+    </tr>
+    <tr>
+      <th>short_content</th>
+      <td>
+        <% if @article.short_content.present? %>
+          <div class="article-content"><%= h(@article.short_content) %></div>
+        <% else %>—<% end %>
+      </td>
+    </tr>
+    <tr>
+      <th>content</th>
+      <td>
+        <div style="margin-bottom:8px;">
+          <% if params[:source] == "1" %>
+            <a class="btn" href="/articles/<%= @article.id %>">渲染模式</a>
+          <% else %>
+            <a class="btn" href="/articles/<%= @article.id %>?source=1">查看源码</a>
+          <% end %>
+        </div>
+        <% if params[:source] == "1" %>
+          <pre class="article-content" style="white-space: pre-wrap; word-break: break-word; margin: 0;"><code><%= h @article.content %></code></pre>
+        <% else %>
+          <div class="article-content" style="line-height:1.7;"><%= render_content(@article.content) %></div>
+        <% end %>
+      </td>
+    </tr>
+  </table>
+
+  <div class="actions" style="margin-top:16px;">
+    <a class="btn primary" href="/articles/<%= @article.id %>/edit">编辑</a>
+    <a class="btn" href="/">返回列表</a>
+  </div>
+</div>

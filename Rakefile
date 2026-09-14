@@ -68,7 +68,7 @@ task :console do
   load_app!
   Database.setup!
   require "irb"
-  puts "可用对象: Article Category Topic Tax Industry Aging Tag Collection Attachment Meta Cache"
+  puts "可用对象: Article Category Topic Industry Aging Attachment Meta Cache"
   puts "content 库: #{Database.resolve_db_path}"
   puts "cache 库: #{Cache.db_path}"
   ARGV.clear
@@ -85,6 +85,13 @@ desc "打开 cache 库的 SQLite 命令行"
 task "cache:db" do
   load_app!
   exec "sqlite3", Cache.db_path
+end
+
+desc "启动本地管理后台(Sinatra,操作 content.sqlite)"
+task :web do
+  cd "crawler" do
+    sh "BUNDLE_GEMFILE=#{File.expand_path('crawler/Gemfile', __dir__)} ruby web/server.rb -p 4567"
+  end
 end
 
 desc "全量抓取政策列表(可用 CONCURRENCY 指定并发数)"
@@ -110,6 +117,13 @@ task :fetch do
   Fetch.new.fetch_all(purpose: ENV["PURPOSE"], **opts)
 end
 
+desc "反向补抓图片/视频解读(从政策 policyInterpretation 收集 id 逐个抓取)"
+task "fetch:missing" do
+  load_app!
+  Database.setup!
+  Fetch.new.fetch_missing_interpretations
+end
+
 desc "把待发布记录推送到 D1"
 task :publish do
   load_app!
@@ -122,17 +136,31 @@ desc "查看数据库状态概览"
 task :status do
   load_app!
   Database.setup!
-  puts "content_version(已发布): #{Meta.content_version}"
+  puts "version(已发布): #{Meta.version}"
   puts "文章总数: #{Article.count}"
   puts "待发布: #{Article.pending_publish.count}"
   puts "政策: #{Article.policy.count} / 政策解读: #{Article.interpretation.count}"
 end
 
-desc "常规日更新: 增量抓取列表 -> 抓取详情 -> 发布"
-task update: ["search:incremental", :fetch, :publish]
+desc "数据完整性检查:解读关联、税收政策税种、空值规范"
+task :check do
+  load_app!
+  Database.setup!
+  issues = Check.run
+  if issues.empty?
+    puts "[DataCheck] 全部通过 ✅"
+  else
+    puts "[DataCheck] 发现问题:"
+    issues.each { |i| puts "  - #{i}" }
+    exit 1
+  end
+end
 
-desc "清空库后离线重建: 全量抓列表 -> 抓详情(全程优先走本地缓存)"
-task rebuild: [:search, :fetch]
+desc "常规日更新: 增量抓取列表 -> 抓取详情 -> 反向补抓解读 -> 发布"
+task update: ["search:incremental", :fetch, "fetch:missing", :publish]
+
+desc "清空库后离线重建: 全量抓列表 -> 抓详情 -> 反向补抓解读(全程优先走本地缓存)"
+task rebuild: [:search, :fetch, "fetch:missing"]
 
 namespace :server do
   desc "安装 Worker 依赖"

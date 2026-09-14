@@ -1,0 +1,94 @@
+<div class="page-head">
+  <h1>编辑文章 #<%= @article.id %></h1>
+  <div class="sub">code <%= h(@article.code) %> · <a href="/articles/<%= @article.id %>">查看详情</a></div>
+</div>
+
+<form method="post" action="/articles/<%= @article.id %>">
+  <div class="card">
+    <table class="kv">
+      <tr>
+        <th>title</th>
+        <td><input type="text" name="title" value="<%= h(@article.title) %>" /></td>
+      </tr>
+      <tr>
+        <th>publisher</th>
+        <td><input type="text" name="publisher" value="<%= h(@article.publisher) %>" /></td>
+      </tr>
+      <tr>
+        <th>doc_type</th>
+        <td><input type="text" name="doc_type" value="<%= h(@article.doc_type) %>" /></td>
+      </tr>
+      <tr>
+        <th>doc_number</th>
+        <td><input type="text" name="doc_number" value="<%= h(@article.doc_number) %>" /></td>
+      </tr>
+      <tr>
+        <th>doc_year</th>
+        <td><input type="number" name="doc_year" value="<%= @article.doc_year %>" /></td>
+      </tr>
+      <tr>
+        <th>doc_no</th>
+        <td><input type="number" name="doc_no" value="<%= @article.doc_no %>" /></td>
+      </tr>
+      <tr>
+        <th>published_at</th>
+        <td><input type="datetime-local" name="published_at" value="<%= @article.published_at ? @article.published_at.strftime("%Y-%m-%dT%H:%M") : "" %>" /></td>
+      </tr>
+      <tr>
+        <th>category</th>
+        <td>
+          <select name="category">
+            <option value="">—</option>
+            <% @categories.each do |display, value| %>
+            <option value="<%= h(value) %>" <%= @article.category&.title == value ? "selected" : "" %>><%= h(display) %></option>
+            <% end %>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th>aging</th>
+        <td>
+          <select name="aging">
+            <option value="">—</option>
+            <% @agings.each do |a| %>
+            <option value="<%= h(a) %>" <%= @article.aging&.title == a ? "selected" : "" %>><%= h(a) %></option>
+            <% end %>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th>topics</th>
+        <td>
+          <select name="topics[]" multiple size="5">
+            <% @topics.each do |display, value| %>
+            <option value="<%= h(value) %>" <%= @article.topics.map(&:title).include?(value) ? "selected" : "" %>><%= h(display) %></option>
+            <% end %>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th>industries</th>
+        <td>
+          <select name="industries[]" multiple size="5">
+            <% @industries.each do |t| %>
+            <option value="<%= h(t) %>" <%= @article.industries.map(&:title).include?(t) ? "selected" : "" %>><%= h(t) %></option>
+            <% end %>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th>short_content</th>
+        <td><textarea name="short_content" rows="3"><%= h(@article.short_content) %></textarea></td>
+      </tr>
+      <tr>
+        <th>content</th>
+        <td><textarea name="content" rows="20"><%= h(@article.content) %></textarea></td>
+      </tr>
+    </table>
+
+    <div class="actions" style="margin-top:20px;">
+      <button class="btn primary" type="submit">保存</button>
+      <a class="btn" href="/">取消</a>
+    </div>
+  </div>
+</form>

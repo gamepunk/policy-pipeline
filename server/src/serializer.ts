@@ -18,14 +18,9 @@ export async function serialize_article(
         .bind(row.aging_id as number)
         .first<{ title: string }>()
     : null;
-  const parent = row.parent_article_id
+  const parent = row.policy_id
     ? await env.DB.prepare("SELECT code FROM articles WHERE id = ?")
-        .bind(row.parent_article_id as number)
-        .first<{ code: string }>()
-    : null;
-  const child = row.child_article_id
-    ? await env.DB.prepare("SELECT code FROM articles WHERE id = ?")
-        .bind(row.child_article_id as number)
+        .bind(row.policy_id as number)
         .first<{ code: string }>()
     : null;
 
@@ -34,18 +29,8 @@ export async function serialize_article(
   )
     .bind(id)
     .all<{ title: string }>();
-  const taxes = await env.DB.prepare(
-    "SELECT t.title FROM taxes t JOIN articles_taxes jt ON jt.tax_id = t.id WHERE jt.article_id = ?",
-  )
-    .bind(id)
-    .all<{ title: string }>();
   const industries = await env.DB.prepare(
     "SELECT t.title FROM industries t JOIN articles_industries jt ON jt.industry_id = t.id WHERE jt.article_id = ?",
-  )
-    .bind(id)
-    .all<{ title: string }>();
-  const tags = await env.DB.prepare(
-    "SELECT t.title FROM tags t JOIN articles_tags jt ON jt.tag_id = t.id WHERE jt.article_id = ?",
   )
     .bind(id)
     .all<{ title: string }>();
@@ -66,7 +51,6 @@ export async function serialize_article(
     content: row.content,
     short_content: row.short_content,
     publisher: row.publisher,
-    purpose: row.purpose,
     doc_type: row.doc_type,
     doc_year: row.doc_year,
     doc_no: row.doc_no,
@@ -75,17 +59,14 @@ export async function serialize_article(
     published_at: row.published_at,
     category: category?.title ?? null,
     aging: aging?.title ?? null,
-    parent_article_code: parent?.code ?? null,
-    child_article_code: child?.code ?? null,
+    policy_code: parent?.code ?? null,
     topics: topics.results.map((t) => t.title),
-    taxes: taxes.results.map((t) => t.title),
     industries: industries.results.map((t) => t.title),
-    tags: tags.results.map((t) => t.title),
     attachments: attachments.results.map((a) => ({
       title: a.title,
       source_url: a.source_url,
       file_type: a.file_type,
     })),
-    content_version: row.content_version,
+    version: row.version,
   };
 }

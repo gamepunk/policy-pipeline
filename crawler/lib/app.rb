@@ -32,10 +32,7 @@ require_relative "store/models/article"
 require_relative "store/models/category"
 require_relative "store/models/aging"
 require_relative "store/models/topic"
-require_relative "store/models/tax"
 require_relative "store/models/industry"
-require_relative "store/models/tag"
-require_relative "store/models/collection"
 require_relative "store/models/attachment"
 require_relative "store/models/meta"
 
@@ -48,3 +45,6 @@ require_relative "ingest/fetch"
 # 发布
 require_relative "publish/bumper"
 require_relative "publish/d1"
+
+# 校验
+require_relative "support/check"

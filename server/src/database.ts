@@ -3,14 +3,14 @@
 
 import type { ArticlePayload, Env } from "./types";
 
-export async function read_content_version(env: Env): Promise<number> {
+export async function read_version(env: Env): Promise<number> {
   const row = await env.DB.prepare(
-    "SELECT value FROM meta WHERE key = 'content_version'",
+    "SELECT value FROM meta WHERE key = 'version'",
   ).first<{ value: string }>();
   return row ? parseInt(row.value, 10) || 0 : 0;
 }
 
-// 按 title 查找或创建参考数据(category/aging/topic/tax/industry/tag),返回 id。
+// 按 title 查找或创建参考数据(category/aging/topic/industry),返回 id。
 // table 参数只允许代码内的固定枚举,不会接受用户输入。
 export async function find_or_create_id(
   env: Env,
@@ -56,17 +56,15 @@ export async function upsert_article(
 
   let existing: { id: number } | null = null;
   if (a.code) {
-    existing = await env.DB.prepare(
-      "SELECT id FROM articles WHERE purpose = ? AND code = ?",
-    )
-      .bind(a.purpose, a.code)
+    existing = await env.DB.prepare("SELECT id FROM articles WHERE code = ?")
+      .bind(a.code)
       .first<{ id: number }>();
   }
   if (!existing && a.origin_url) {
     existing = await env.DB.prepare(
-      "SELECT id FROM articles WHERE purpose = ? AND origin_url = ?",
+      "SELECT id FROM articles WHERE origin_url = ?",
     )
-      .bind(a.purpose, a.origin_url)
+      .bind(a.origin_url)
       .first<{ id: number }>();
   }
 
@@ -76,8 +74,7 @@ export async function upsert_article(
     a.category || "",
   );
   const agingId = await find_or_create_id(env, "agings", a.aging || "");
-  const parentId = await find_article_id_by_code(env, a.parent_article_code);
-  const childId = await find_article_id_by_code(env, a.child_article_code);
+  const parentId = await find_article_id_by_code(env, a.policy_code);
 
   let articleId: number;
   if (existing) {
@@ -86,9 +83,9 @@ export async function upsert_article(
       `
       UPDATE articles SET
         code = ?, origin_url = ?, title = ?, content = ?, short_content = ?,
-        publisher = ?, purpose = ?, doc_type = ?, doc_year = ?, doc_no = ?,
+        publisher = ?, doc_type = ?, doc_year = ?, doc_no = ?,
         doc_number = ?, notice = ?, published_at = ?, category_id = ?, aging_id = ?,
-        parent_article_id = ?, child_article_id = ?, content_version = ?, updated_at = ?
+        policy_id = ?, version = ?, updated_at = ?
       WHERE id = ?
     `,
     )
@@ -99,7 +96,6 @@ export async function upsert_article(
         a.content ?? null,
         a.short_content ?? null,
         a.publisher ?? null,
-        a.purpose,
         a.doc_type ?? null,
         a.doc_year ?? null,
         a.doc_no ?? null,
@@ -109,7 +105,6 @@ export async function upsert_article(
         categoryId,
         agingId,
         parentId,
-        childId,
         version,
         now,
         articleId,
@@ -119,11 +114,11 @@ export async function upsert_article(
     const result = await env.DB.prepare(
       `
       INSERT INTO articles (
-        code, origin_url, title, content, short_content, publisher, purpose,
+        code, origin_url, title, content, short_content, publisher,
         doc_type, doc_year, doc_no, doc_number, notice, published_at,
-        category_id, aging_id, parent_article_id, child_article_id,
-        content_version, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        category_id, aging_id, policy_id,
+        version, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     )
       .bind(
@@ -133,7 +128,6 @@ export async function upsert_article(
         a.content ?? null,
         a.short_content ?? null,
         a.publisher ?? null,
-        a.purpose,
         a.doc_type ?? null,
         a.doc_year ?? null,
         a.doc_no ?? null,
@@ -143,7 +137,6 @@ export async function upsert_article(
         categoryId,
         agingId,
         parentId,
-        childId,
         version,
         now,
         now,
@@ -160,7 +153,6 @@ export async function upsert_article(
     "topics",
     a.topics,
   );
-  await link_many(env, articleId, "articles_taxes", "tax_id", "taxes", a.taxes);
   await link_many(
     env,
     articleId,
@@ -169,8 +161,6 @@ export async function upsert_article(
     "industries",
     a.industries,
   );
-  await link_many(env, articleId, "articles_tags", "tag_id", "tags", a.tags);
-
   // attachments 全量重建,保证幂等
   await env.DB.prepare("DELETE FROM attachments WHERE article_id = ?")
     .bind(articleId)
