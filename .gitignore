@@ -15,3 +15,8 @@ database/content.sqlite-wal
 server/node_modules/
 server/.wrangler/
 server/worker-configuration.d.ts
+
+# Xcode / client(只排除用户本地状态,源码本身要提交)
+xcuserdata/
+*.xcuserstate
+DerivedData/
