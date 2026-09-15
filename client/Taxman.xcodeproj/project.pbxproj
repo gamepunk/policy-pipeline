@@ -6,218 +6,311 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		652C317A30592297005A5DA4 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 652C317930592297005A5DA4 /* WidgetKit.framework */; };
+		652C317C30592297005A5DA4 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 652C317B30592297005A5DA4 /* SwiftUI.framework */; };
+		652C318B3059229D005A5DA4 /* WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 652C317730592297005A5DA4 /* WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
-		6593E9BF30590BD200E6195A /* PBXContainerItemProxy */ = {
+		652C31453059205D005A5DA4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 6593E9A530590BD000E6195A /* Project object */;
+			containerPortal = 652C312B3059205C005A5DA4 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 6593E9AC30590BD000E6195A;
+			remoteGlobalIDString = 652C31323059205C005A5DA4;
 			remoteInfo = Taxman;
 		};
-		6593E9C930590BD200E6195A /* PBXContainerItemProxy */ = {
+		652C314F3059205E005A5DA4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 6593E9A530590BD000E6195A /* Project object */;
+			containerPortal = 652C312B3059205C005A5DA4 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 6593E9AC30590BD000E6195A;
+			remoteGlobalIDString = 652C31323059205C005A5DA4;
 			remoteInfo = Taxman;
+		};
+		652C31893059229D005A5DA4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 652C312B3059205C005A5DA4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 652C317630592297005A5DA4;
+			remoteInfo = WidgetExtension;
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		652C31903059229D005A5DA4 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = PlugIns;
+			files = (
+				652C318B3059229D005A5DA4 /* WidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		6593E9AD30590BD000E6195A /* Taxman.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Taxman.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		6593E9BE30590BD200E6195A /* TaxmanTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TaxmanTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		6593E9C830590BD200E6195A /* TaxmanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TaxmanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		652C31333059205C005A5DA4 /* Taxman.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Taxman.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		652C31443059205D005A5DA4 /* TaxmanTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TaxmanTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		652C314E3059205E005A5DA4 /* TaxmanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TaxmanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		652C317730592297005A5DA4 /* WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		652C317930592297005A5DA4 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		652C317B30592297005A5DA4 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		6593E9CE30590BD200E6195A /* Exceptions for "Taxman" folder in "Taxman" target */ = {
+		652C31543059205E005A5DA4 /* Exceptions for "Taxman" folder in "Taxman" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 6593E9AC30590BD000E6195A /* Taxman */;
+			target = 652C31323059205C005A5DA4 /* Taxman */;
+		};
+		652C318F3059229D005A5DA4 /* Exceptions for "Widget" folder in "WidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 652C317630592297005A5DA4 /* WidgetExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		6593E9AF30590BD000E6195A /* Taxman */ = {
+		652C31353059205C005A5DA4 /* Taxman */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				6593E9CE30590BD200E6195A /* Exceptions for "Taxman" folder in "Taxman" target */,
+				652C31543059205E005A5DA4 /* Exceptions for "Taxman" folder in "Taxman" target */,
 			);
 			path = Taxman;
 			sourceTree = "<group>";
 		};
-		6593E9C130590BD200E6195A /* TaxmanTests */ = {
+		652C31473059205D005A5DA4 /* TaxmanTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TaxmanTests;
 			sourceTree = "<group>";
 		};
-		6593E9CB30590BD200E6195A /* TaxmanUITests */ = {
+		652C31513059205E005A5DA4 /* TaxmanUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TaxmanUITests;
+			sourceTree = "<group>";
+		};
+		652C317D30592297005A5DA4 /* Widget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				652C318F3059229D005A5DA4 /* Exceptions for "Widget" folder in "WidgetExtension" target */,
+			);
+			path = Widget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		6593E9AA30590BD000E6195A /* Frameworks */ = {
+		652C31303059205C005A5DA4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
 			);
 		};
-		6593E9BB30590BD200E6195A /* Frameworks */ = {
+		652C31413059205D005A5DA4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
 			);
 		};
-		6593E9C530590BD200E6195A /* Frameworks */ = {
+		652C314B3059205E005A5DA4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+			);
+		};
+		652C317430592297005A5DA4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				652C317C30592297005A5DA4 /* SwiftUI.framework in Frameworks */,
+				652C317A30592297005A5DA4 /* WidgetKit.framework in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		6593E9A430590BD000E6195A = {
+		652C312A3059205C005A5DA4 = {
 			isa = PBXGroup;
 			children = (
-				6593E9AF30590BD000E6195A /* Taxman */,
-				6593E9C130590BD200E6195A /* TaxmanTests */,
-				6593E9CB30590BD200E6195A /* TaxmanUITests */,
-				6593E9AE30590BD000E6195A /* Products */,
+				652C31353059205C005A5DA4 /* Taxman */,
+				652C31473059205D005A5DA4 /* TaxmanTests */,
+				652C31513059205E005A5DA4 /* TaxmanUITests */,
+				652C317D30592297005A5DA4 /* Widget */,
+				652C317830592297005A5DA4 /* Frameworks */,
+				652C31343059205C005A5DA4 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		6593E9AE30590BD000E6195A /* Products */ = {
+		652C31343059205C005A5DA4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6593E9AD30590BD000E6195A /* Taxman.app */,
-				6593E9BE30590BD200E6195A /* TaxmanTests.xctest */,
-				6593E9C830590BD200E6195A /* TaxmanUITests.xctest */,
+				652C31333059205C005A5DA4 /* Taxman.app */,
+				652C31443059205D005A5DA4 /* TaxmanTests.xctest */,
+				652C314E3059205E005A5DA4 /* TaxmanUITests.xctest */,
+				652C317730592297005A5DA4 /* WidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		652C317830592297005A5DA4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				652C317930592297005A5DA4 /* WidgetKit.framework */,
+				652C317B30592297005A5DA4 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		6593E9AC30590BD000E6195A /* Taxman */ = {
+		652C31323059205C005A5DA4 /* Taxman */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6593E9CF30590BD200E6195A /* Build configuration list for PBXNativeTarget "Taxman" */;
+			buildConfigurationList = 652C31553059205E005A5DA4 /* Build configuration list for PBXNativeTarget "Taxman" */;
 			buildPhases = (
-				6593E9A930590BD000E6195A /* Sources */,
-				6593E9AA30590BD000E6195A /* Frameworks */,
-				6593E9AB30590BD000E6195A /* Resources */,
+				652C312F3059205C005A5DA4 /* Sources */,
+				652C31303059205C005A5DA4 /* Frameworks */,
+				652C31313059205C005A5DA4 /* Resources */,
+				652C31903059229D005A5DA4 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
+			dependencies = (
+				652C318A3059229D005A5DA4 /* PBXTargetDependency */,
+			);
 			fileSystemSynchronizedGroups = (
-				6593E9AF30590BD000E6195A /* Taxman */,
+				652C31353059205C005A5DA4 /* Taxman */,
 			);
 			name = Taxman;
 			productName = Taxman;
-			productReference = 6593E9AD30590BD000E6195A /* Taxman.app */;
+			productReference = 652C31333059205C005A5DA4 /* Taxman.app */;
 			productType = "com.apple.product-type.application";
 		};
-		6593E9BD30590BD200E6195A /* TaxmanTests */ = {
+		652C31433059205D005A5DA4 /* TaxmanTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6593E9D430590BD200E6195A /* Build configuration list for PBXNativeTarget "TaxmanTests" */;
+			buildConfigurationList = 652C315A3059205E005A5DA4 /* Build configuration list for PBXNativeTarget "TaxmanTests" */;
 			buildPhases = (
-				6593E9BA30590BD200E6195A /* Sources */,
-				6593E9BB30590BD200E6195A /* Frameworks */,
-				6593E9BC30590BD200E6195A /* Resources */,
+				652C31403059205D005A5DA4 /* Sources */,
+				652C31413059205D005A5DA4 /* Frameworks */,
+				652C31423059205D005A5DA4 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				6593E9C030590BD200E6195A /* PBXTargetDependency */,
+				652C31463059205D005A5DA4 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				6593E9C130590BD200E6195A /* TaxmanTests */,
+				652C31473059205D005A5DA4 /* TaxmanTests */,
 			);
 			name = TaxmanTests;
 			productName = TaxmanTests;
-			productReference = 6593E9BE30590BD200E6195A /* TaxmanTests.xctest */;
+			productReference = 652C31443059205D005A5DA4 /* TaxmanTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		6593E9C730590BD200E6195A /* TaxmanUITests */ = {
+		652C314D3059205E005A5DA4 /* TaxmanUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6593E9D730590BD200E6195A /* Build configuration list for PBXNativeTarget "TaxmanUITests" */;
+			buildConfigurationList = 652C315D3059205E005A5DA4 /* Build configuration list for PBXNativeTarget "TaxmanUITests" */;
 			buildPhases = (
-				6593E9C430590BD200E6195A /* Sources */,
-				6593E9C530590BD200E6195A /* Frameworks */,
-				6593E9C630590BD200E6195A /* Resources */,
+				652C314A3059205E005A5DA4 /* Sources */,
+				652C314B3059205E005A5DA4 /* Frameworks */,
+				652C314C3059205E005A5DA4 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				6593E9CA30590BD200E6195A /* PBXTargetDependency */,
+				652C31503059205E005A5DA4 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				6593E9CB30590BD200E6195A /* TaxmanUITests */,
+				652C31513059205E005A5DA4 /* TaxmanUITests */,
 			);
 			name = TaxmanUITests;
 			productName = TaxmanUITests;
-			productReference = 6593E9C830590BD200E6195A /* TaxmanUITests.xctest */;
+			productReference = 652C314E3059205E005A5DA4 /* TaxmanUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		652C317630592297005A5DA4 /* WidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 652C318C3059229D005A5DA4 /* Build configuration list for PBXNativeTarget "WidgetExtension" */;
+			buildPhases = (
+				652C317330592297005A5DA4 /* Sources */,
+				652C317430592297005A5DA4 /* Frameworks */,
+				652C317530592297005A5DA4 /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				652C317D30592297005A5DA4 /* Widget */,
+			);
+			name = WidgetExtension;
+			productName = WidgetExtension;
+			productReference = 652C317730592297005A5DA4 /* WidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		6593E9A530590BD000E6195A /* Project object */ = {
+		652C312B3059205C005A5DA4 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
-					6593E9AC30590BD000E6195A = {
+					652C31323059205C005A5DA4 = {
 						CreatedOnToolsVersion = 27.0;
 					};
-					6593E9BD30590BD200E6195A = {
+					652C31433059205D005A5DA4 = {
 						CreatedOnToolsVersion = 27.0;
-						TestTargetID = 6593E9AC30590BD000E6195A;
+						TestTargetID = 652C31323059205C005A5DA4;
 					};
-					6593E9C730590BD200E6195A = {
+					652C314D3059205E005A5DA4 = {
 						CreatedOnToolsVersion = 27.0;
-						TestTargetID = 6593E9AC30590BD000E6195A;
+						TestTargetID = 652C31323059205C005A5DA4;
+					};
+					652C317630592297005A5DA4 = {
+						CreatedOnToolsVersion = 27.0;
 					};
 				};
 			};
-			buildConfigurationList = 6593E9A830590BD000E6195A /* Build configuration list for PBXProject "Taxman" */;
+			buildConfigurationList = 652C312E3059205C005A5DA4 /* Build configuration list for PBXProject "Taxman" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = 6593E9A430590BD000E6195A;
+			mainGroup = 652C312A3059205C005A5DA4;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 6593E9AE30590BD000E6195A /* Products */;
+			productRefGroup = 652C31343059205C005A5DA4 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				6593E9AC30590BD000E6195A /* Taxman */,
-				6593E9BD30590BD200E6195A /* TaxmanTests */,
-				6593E9C730590BD200E6195A /* TaxmanUITests */,
+				652C31323059205C005A5DA4 /* Taxman */,
+				652C31433059205D005A5DA4 /* TaxmanTests */,
+				652C314D3059205E005A5DA4 /* TaxmanUITests */,
+				652C317630592297005A5DA4 /* WidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		6593E9AB30590BD000E6195A /* Resources */ = {
+		652C31313059205C005A5DA4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
 		};
-		6593E9BC30590BD200E6195A /* Resources */ = {
+		652C31423059205D005A5DA4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
 		};
-		6593E9C630590BD200E6195A /* Resources */ = {
+		652C314C3059205E005A5DA4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		652C317530592297005A5DA4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -225,17 +318,22 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		6593E9A930590BD000E6195A /* Sources */ = {
+		652C312F3059205C005A5DA4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
 			);
 		};
-		6593E9BA30590BD200E6195A /* Sources */ = {
+		652C31403059205D005A5DA4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
 			);
 		};
-		6593E9C430590BD200E6195A /* Sources */ = {
+		652C314A3059205E005A5DA4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		652C317330592297005A5DA4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
 			);
@@ -243,20 +341,25 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		6593E9C030590BD200E6195A /* PBXTargetDependency */ = {
+		652C31463059205D005A5DA4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 6593E9AC30590BD000E6195A /* Taxman */;
-			targetProxy = 6593E9BF30590BD200E6195A /* PBXContainerItemProxy */;
+			target = 652C31323059205C005A5DA4 /* Taxman */;
+			targetProxy = 652C31453059205D005A5DA4 /* PBXContainerItemProxy */;
 		};
-		6593E9CA30590BD200E6195A /* PBXTargetDependency */ = {
+		652C31503059205E005A5DA4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 6593E9AC30590BD000E6195A /* Taxman */;
-			targetProxy = 6593E9C930590BD200E6195A /* PBXContainerItemProxy */;
+			target = 652C31323059205C005A5DA4 /* Taxman */;
+			targetProxy = 652C314F3059205E005A5DA4 /* PBXContainerItemProxy */;
+		};
+		652C318A3059229D005A5DA4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 652C317630592297005A5DA4 /* WidgetExtension */;
+			targetProxy = 652C31893059229D005A5DA4 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		6593E9D030590BD200E6195A /* Debug configuration for PBXNativeTarget "Taxman" */ = {
+		652C31563059205E005A5DA4 /* Debug configuration for PBXNativeTarget "Taxman" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -277,7 +380,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.inksky.Taxman;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -290,7 +393,7 @@
 			};
 			name = Debug;
 		};
-		6593E9D130590BD200E6195A /* Release configuration for PBXNativeTarget "Taxman" */ = {
+		652C31573059205E005A5DA4 /* Release configuration for PBXNativeTarget "Taxman" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -311,7 +414,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.inksky.Taxman;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -324,7 +427,7 @@
 			};
 			name = Release;
 		};
-		6593E9D230590BD200E6195A /* Debug configuration for PBXProject "Taxman" */ = {
+		652C31583059205E005A5DA4 /* Debug configuration for PBXProject "Taxman" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -388,7 +491,7 @@
 			};
 			name = Debug;
 		};
-		6593E9D330590BD200E6195A /* Release configuration for PBXProject "Taxman" */ = {
+		652C31593059205E005A5DA4 /* Release configuration for PBXProject "Taxman" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -445,7 +548,7 @@
 			};
 			name = Release;
 		};
-		6593E9D530590BD200E6195A /* Debug configuration for PBXNativeTarget "TaxmanTests" */ = {
+		652C315B3059205E005A5DA4 /* Debug configuration for PBXNativeTarget "TaxmanTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -467,7 +570,7 @@
 			};
 			name = Debug;
 		};
-		6593E9D630590BD200E6195A /* Release configuration for PBXNativeTarget "TaxmanTests" */ = {
+		652C315C3059205E005A5DA4 /* Release configuration for PBXNativeTarget "TaxmanTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -489,7 +592,7 @@
 			};
 			name = Release;
 		};
-		6593E9D830590BD200E6195A /* Debug configuration for PBXNativeTarget "TaxmanUITests" */ = {
+		652C315E3059205E005A5DA4 /* Debug configuration for PBXNativeTarget "TaxmanUITests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -509,7 +612,7 @@
 			};
 			name = Debug;
 		};
-		6593E9D930590BD200E6195A /* Release configuration for PBXNativeTarget "TaxmanUITests" */ = {
+		652C315F3059205E005A5DA4 /* Release configuration for PBXNativeTarget "TaxmanUITests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -526,46 +629,114 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = Taxman;
+			};
+			name = Release;
+		};
+		652C318D3059229D005A5DA4 /* Debug configuration for PBXNativeTarget "WidgetExtension" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L62K457NDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Widget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Widget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.inksky.Taxman.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		652C318E3059229D005A5DA4 /* Release configuration for PBXNativeTarget "WidgetExtension" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L62K457NDQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Widget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Widget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.inksky.Taxman.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		6593E9A830590BD000E6195A /* Build configuration list for PBXProject "Taxman" */ = {
+		652C312E3059205C005A5DA4 /* Build configuration list for PBXProject "Taxman" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				6593E9D230590BD200E6195A /* Debug configuration for PBXProject "Taxman" */,
-				6593E9D330590BD200E6195A /* Release configuration for PBXProject "Taxman" */,
+				652C31583059205E005A5DA4 /* Debug configuration for PBXProject "Taxman" */,
+				652C31593059205E005A5DA4 /* Release configuration for PBXProject "Taxman" */,
 			);
 			defaultConfigurationName = Release;
 		};
-		6593E9CF30590BD200E6195A /* Build configuration list for PBXNativeTarget "Taxman" */ = {
+		652C31553059205E005A5DA4 /* Build configuration list for PBXNativeTarget "Taxman" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				6593E9D030590BD200E6195A /* Debug configuration for PBXNativeTarget "Taxman" */,
-				6593E9D130590BD200E6195A /* Release configuration for PBXNativeTarget "Taxman" */,
+				652C31563059205E005A5DA4 /* Debug configuration for PBXNativeTarget "Taxman" */,
+				652C31573059205E005A5DA4 /* Release configuration for PBXNativeTarget "Taxman" */,
 			);
 			defaultConfigurationName = Release;
 		};
-		6593E9D430590BD200E6195A /* Build configuration list for PBXNativeTarget "TaxmanTests" */ = {
+		652C315A3059205E005A5DA4 /* Build configuration list for PBXNativeTarget "TaxmanTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				6593E9D530590BD200E6195A /* Debug configuration for PBXNativeTarget "TaxmanTests" */,
-				6593E9D630590BD200E6195A /* Release configuration for PBXNativeTarget "TaxmanTests" */,
+				652C315B3059205E005A5DA4 /* Debug configuration for PBXNativeTarget "TaxmanTests" */,
+				652C315C3059205E005A5DA4 /* Release configuration for PBXNativeTarget "TaxmanTests" */,
 			);
 			defaultConfigurationName = Release;
 		};
-		6593E9D730590BD200E6195A /* Build configuration list for PBXNativeTarget "TaxmanUITests" */ = {
+		652C315D3059205E005A5DA4 /* Build configuration list for PBXNativeTarget "TaxmanUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				6593E9D830590BD200E6195A /* Debug configuration for PBXNativeTarget "TaxmanUITests" */,
-				6593E9D930590BD200E6195A /* Release configuration for PBXNativeTarget "TaxmanUITests" */,
+				652C315E3059205E005A5DA4 /* Debug configuration for PBXNativeTarget "TaxmanUITests" */,
+				652C315F3059205E005A5DA4 /* Release configuration for PBXNativeTarget "TaxmanUITests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		652C318C3059229D005A5DA4 /* Build configuration list for PBXNativeTarget "WidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				652C318D3059229D005A5DA4 /* Debug configuration for PBXNativeTarget "WidgetExtension" */,
+				652C318E3059229D005A5DA4 /* Release configuration for PBXNativeTarget "WidgetExtension" */,
 			);
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 6593E9A530590BD000E6195A /* Project object */;
+	rootObject = 652C312B3059205C005A5DA4 /* Project object */;
 	validationLevel = 1;
 }
